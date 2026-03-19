@@ -3,13 +3,8 @@ name: Tennis Court Monitor
 on:
   schedule:
     - cron: '*/5 8-20 * * *'
-  ##workflow_dispatch:
-    #inputs:
-     # test_mode:
-      #  description: 'Run in test mode (simulate 2 players, no reservation)'
-       # required: false
-        #type: boolean
-        #default: false
+  workflow_dispatch:
+
 jobs:
   monitor:
     runs-on: ubuntu-latest
@@ -40,8 +35,7 @@ jobs:
             wget -q https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
           fi
 
-      - name: Run monitor (normal mode)
-        if: ${{ inputs.test_mode != true }}
+      - name: Run monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -49,13 +43,3 @@ jobs:
           GOTCOURTS_URL: ${{ secrets.GOTCOURTS_URL }}
           MODEL_PATH: yolov8n.pt
         run: python monitor.py
-
-      - name: Run monitor (test mode)
-        if: ${{ inputs.test_mode == true }}
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          WEBCAM_URL: ${{ secrets.WEBCAM_URL }}
-          GOTCOURTS_URL: ${{ secrets.GOTCOURTS_URL }}
-          MODEL_PATH: yolov8n.pt
-        run: python monitor.py --test
