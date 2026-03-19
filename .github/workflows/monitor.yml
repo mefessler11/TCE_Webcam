@@ -1,0 +1,59 @@
+name: Tennis Court Monitor
+
+on:
+  schedule:
+    # Läuft alle 15 Minuten von 7:00 bis 22:00 Uhr (UTC+1 = 6:00-21:00 UTC)
+    - cron: '*/15 6-21 * * *'
+  
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Run in test mode (simulate 2 players, no reservation)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Download YOLO model
+        run: |
+          if [ ! -f yolov8n.pt ]; then
+            wget -q https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt
+          fi
+      
+      - name: Run monitor (normal mode)
+        if: ${{ !inputs.test_mode }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WEBCAM_URL: ${{ secrets.WEBCAM_URL }}
+          MODEL_PATH: ${{ secrets.MODEL_PATH }}
+          GOTCOURTS_URL: ${{ secrets.GOTCOURTS_URL }}
+        run: python monitor.py
+      
+      - name: Run monitor (test mode)
+        if: ${{ inputs.test_mode }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WEBCAM_URL: ${{ secrets.WEBCAM_URL }}
+          MODEL_PATH: ${{ secrets.MODEL_PATH }}
+          GOTCOURTS_URL: ${{ secrets.GOTCOURTS_URL }}
+        run: python monitor.py --test
