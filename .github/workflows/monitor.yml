@@ -2,8 +2,8 @@ name: Tennis Court Monitor
 
 on:
   schedule:
-    # Läuft alle 15 Minuten von 7:00 bis 22:00 Uhr (UTC+1 = 6:00-21:00 UTC)
-    - cron: '*/15 6-21 * * *'
+    # Läuft alle 20 Minuten von 9:00 bis 21:00 Uhr (UTC+1 = 8:00-20:00 UTC)
+    - cron: '*/20 8-20 * * *'
   
   workflow_dispatch:
     inputs:
