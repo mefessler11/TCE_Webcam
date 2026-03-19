@@ -2,7 +2,7 @@ name: Tennis Court Monitor
 
 on:
   schedule:
-    - cron: '*/20 8-20 * * *'
+    - cron: '*/5 8-20 * * *'
   workflow_dispatch:
     inputs:
       test_mode:
@@ -14,7 +14,6 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,6 +29,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Cache YOLO model
+        uses: actions/cache@v4
+        with:
+          path: yolov8n.pt
+          key: yolov8n-model
+
       - name: Download YOLO model
         run: |
           if [ ! -f yolov8n.pt ]; then
@@ -37,7 +42,7 @@ jobs:
           fi
 
       - name: Run monitor (normal mode)
-        if: ${{ !inputs.test_mode }}
+        if: ${{ inputs.test_mode != true }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -47,7 +52,7 @@ jobs:
         run: python monitor.py
 
       - name: Run monitor (test mode)
-        if: ${{ inputs.test_mode }}
+        if: ${{ inputs.test_mode == true }}
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
